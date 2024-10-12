@@ -13,3 +13,4 @@ class NewcastModel(Base):
     name = Column(String, index=True, nullable=False, unique=True)
     created_at = Column(DateTime, default=datetime.now())
     articles = relationship("ArticleModel", back_populates="newcast")
+    stats = relationship("StatsModel", back_populates="newcast")

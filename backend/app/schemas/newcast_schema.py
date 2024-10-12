@@ -14,10 +14,6 @@ class NewcastCreate(NewcastBase):
     pass
 
 
-class NewcastUpdate(NewcastBase):
-    pass
-
-
 class Newcast(NewcastBase):
     uid: int
     created_at: datetime

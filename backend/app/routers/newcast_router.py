@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from app.ioc.dependencies import get_db
-from app.schemas.newcast_schema import Newcast, NewcastCreate
+from app.schemas.newcast_schema import NewcastCreate
 from app.services import newcast_service
 from app.utils import responses
 
@@ -19,7 +19,7 @@ async def create_newcast(
 
     if newcast:
         return responses.conflict(
-            f"A newspaper with name {newcast_create.name} already exists"
+            f"A newscast with name {newcast_create.name} already exists"
         )
 
     newcast = newcast_service.create_newcast(newcast_create, db)
@@ -28,7 +28,7 @@ async def create_newcast(
         "uid": newcast.uid,
         "created_at": str(newcast.created_at),
     }
-    return responses.created(message=f"Newspaper created", data=newcast_created)
+    return responses.created(message=f"Newscast created", data=newcast_created)
 
 
 @router.get("/newcast")
@@ -44,4 +44,4 @@ async def get_newcasts(db: Annotated[Session, Depends(get_db)]):
         for newcast in newcasts
     ]
 
-    return responses.created(message=f"Newspaper obtained", data=newcast_models)
+    return responses.created(message=f"Newscasts obtained", data=newcast_models)

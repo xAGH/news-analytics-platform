@@ -6,15 +6,7 @@ from pydantic import BaseModel, ConfigDict
 class ArticleBase(BaseModel):
     upload_date: datetime
     file_path: str
-    newspaper_id: int
-
-
-class ArticleCreate(ArticleBase):
-    pass
-
-
-class ArticleUpdate(ArticleBase):
-    pass
+    newcast_uid: int
 
 
 class Article(ArticleBase):

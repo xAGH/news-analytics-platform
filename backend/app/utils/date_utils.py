@@ -1,9 +1,8 @@
 from datetime import date as _date
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Union
 
 from app.constants.enums.week_day import WeekDay
-from app.constants.formats import DATE_FORMAT
 
 
 def get_weekday(date: Union[datetime, _date]) -> str:
@@ -13,4 +12,4 @@ def get_weekday(date: Union[datetime, _date]) -> str:
 
 
 def get_today() -> _date:
-    return datetime.now().date()
+    return datetime.now().date() + timedelta(days=0)

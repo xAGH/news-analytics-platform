@@ -1,17 +1,19 @@
 from os import getenv
 
 import uvicorn
-from app.config.database_config import init_db
-from app.routers import daily_stats_router, newcast_router, upload_router
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+
+from app.config.database_config import init_db
+from app.routers import newcast_router, populate_router, stats_router, upload_router
 
 stage = getenv("STAGE", "dev")
 app = FastAPI()
 init_db()
 app.include_router(upload_router.router)
 app.include_router(newcast_router.router)
-app.include_router(daily_stats_router.router)
+app.include_router(stats_router.router)
+app.include_router(populate_router.router)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],

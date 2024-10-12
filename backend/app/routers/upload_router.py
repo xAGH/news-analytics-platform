@@ -1,11 +1,12 @@
+import json
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, File, UploadFile
+from fastapi import APIRouter, Depends, UploadFile
 from sqlalchemy.orm import Session
 
 from app.ioc.dependencies import get_db
-from app.services import newcast_service, upload_service
-from app.utils import responses
+from app.services import newcast_service, stats_service, upload_service
+from app.utils import date_utils, responses
 
 router = APIRouter()
 
@@ -28,13 +29,17 @@ async def upload_zip(
     params = (file, newcast, db)
 
     if not newcast:
-        return responses.not_found("Newspaper not found")
+        return responses.not_found("Newcast not found")
 
     if is_zip:
-        uploaded_articles = upload_service.handle_zip_upload(*params)
+        uploaded_now = upload_service.handle_zip_upload(*params)
     else:
-        uploaded_articles = upload_service.handle_txt_upload(*params)
-
-    return responses.ok(
-        message=f"{uploaded_articles} articles have been uploaded today"
+        uploaded_now = upload_service.handle_txt_upload(*params)
+    today = date_utils.get_today()
+    uploaded_today = upload_service.update_day_stats(
+        newcast_uid, today, uploaded_now, db
     )
+    data, notification = stats_service.get_stats_data(
+        newcast_uid, uploaded_now, uploaded_today.articles_upload, db
+    )
+    return responses.ok(message=notification, data=data)

@@ -10,5 +10,5 @@ class ArticleModel(Base):
     uid = Column(Integer, primary_key=True, index=True, autoincrement=True)
     upload_date = Column(DateTime, nullable=False)
     file_path = Column(String, nullable=False)
-    newcast_id = Column(Integer, ForeignKey("newcast.uid"), nullable=False)
+    newcast_uid = Column(Integer, ForeignKey("newcast.uid"), nullable=False)
     newcast = relationship("NewcastModel", back_populates="articles")

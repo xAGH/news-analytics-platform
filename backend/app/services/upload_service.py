@@ -8,20 +8,23 @@ from fastapi import UploadFile
 from sqlalchemy.orm import Session
 
 from app.models.article_model import ArticleModel
-from app.models.daily_stats_model import DailyStatsModel
 from app.models.newcast_model import NewcastModel
-from app.services import daily_stats_service
+from app.models.stats_model import StatsModel
+from app.services import stats_service
 from app.utils import date_utils
 
 
-def update_day_stat(
-    date: _date, articles_uploaded: int, db: Session
-) -> DailyStatsModel:
-    day_stats = daily_stats_service.get_daily_stats_by_date(date, db)
+def update_day_stats(
+    newcast_uid: int, date: _date, articles_uploaded: int, db: Session
+) -> StatsModel:
+    day_stats = stats_service.get_stats_by_date(newcast_uid, date, db)
 
     if not day_stats:
-        day_stats = DailyStatsModel(
-            date=date, articles_upload=0, day_of_week=date_utils.get_weekday(date)
+        day_stats = StatsModel(
+            date=date,
+            articles_upload=0,
+            day_of_week=date_utils.get_weekday(date),
+            newcast_uid=newcast_uid,
         )
         db.add(day_stats)
 
@@ -31,7 +34,7 @@ def update_day_stat(
     return day_stats
 
 
-def handle_txt_upload(file: UploadFile, newcast: NewcastModel, db: Session) -> ...:
+def handle_txt_upload(file: UploadFile, newcast: NewcastModel, db: Session) -> int:
     today = date_utils.get_today()
     folder = f"uploads/{newcast.name}/{today}"
     txt_file_path = f"{folder}/{file.filename}"
@@ -43,13 +46,11 @@ def handle_txt_upload(file: UploadFile, newcast: NewcastModel, db: Session) -> .
     news_article = ArticleModel(
         upload_date=today,
         file_path=f"{txt_file_path}",
-        newcast_id=newcast.uid,
+        newcast_uid=newcast.uid,
     )
     db.add(news_article)
     db.commit()
-
-    upladed = update_day_stat(today, 1, db)
-    return upladed.articles_upload
+    return 1
 
 
 def delete_nested_folders(folder: str):
@@ -58,14 +59,12 @@ def delete_nested_folders(folder: str):
             for file in files:
                 source_path = os.path.join(root, file)
                 dest_path = os.path.join(folder, file)
-                print(f"Moviendo {source_path} a {dest_path}")
                 shutil.move(source_path, dest_path)
 
     for root, dirs, _ in os.walk(folder, topdown=False):
         for _dir in dirs:
             dir_path = os.path.join(root, _dir)
             if not os.listdir(dir_path):
-                print(f"Eliminando carpeta vacía: {dir_path}")
                 os.rmdir(dir_path)
 
 
@@ -90,14 +89,13 @@ def handle_zip_upload(file: UploadFile, newcast: NewcastModel, db: Session) -> i
             news_article = ArticleModel(
                 upload_date=today,
                 file_path=f"{folder}/{filename}",
-                newcast_id=newcast.uid,
+                newcast_uid=newcast.uid,
             )
             db.add(news_article)
 
     os.remove(zip_file_path)
     db.commit()
-    upladed = update_day_stat(today, article_count, db)
-    return upladed.articles_upload
+    return article_count
 
 
 # TODO: PENDING
